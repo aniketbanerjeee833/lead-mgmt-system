@@ -426,5 +426,113 @@ const getStatusByMonth = async (req, res) => {
   }
 };
 
+const getAllLeadsAppliedForClosed = async (req, res) => {
+  const { adminId } = req.params;
 
-module.exports = { registerUser,addLead ,getLeadsByMonth, getSources, getPriorityByMonth, getStatusByMonth,getFollowUpsDayWiseOfEachUser};
+  try {
+    const sql = `
+      SELECT 
+        l.*,
+        cr.id as closure_request_id,
+        cr.closure_requested_at,
+        cr.closure_requested_by,
+        cr.status as closure_status,
+        u1.name as requested_by_name,
+        u1.email as requested_by_email,
+        u2.name as staff_name,
+        u2.email as staff_email,
+        TIMESTAMPDIFF(HOUR, cr.closure_requested_at, NOW()) as hours_pending
+      FROM leads l
+      JOIN closure_requests cr ON l.id = cr.lead_id
+      JOIN users u1 ON cr.closure_requested_by = u1.id
+      LEFT JOIN users u2 ON l.staffId = u2.id
+      WHERE cr.admin_id = ? 
+      AND cr.status = 'pending'
+      AND l.Lead_Status = 'Pending Closure'
+      ORDER BY cr.closure_requested_at DESC
+    `;
+
+    pool.query(sql, [adminId], (err, results) => {
+      if (err) {
+        console.error("Error getting closure requests:", err);
+        return res.status(500).json({ error: "Server error" });
+      }
+      
+      return res.json(results);
+    });
+    
+  } catch (err) {
+    console.error("Server error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+// const getAllLeadsAppliedForClosed = async (req, res) => {
+//   const { adminId } = req.params;
+
+//   try {
+//     const sql = `
+//       SELECT 
+//         l.*,
+//         u1.name as requested_by_name,
+//         u1.email as requested_by_email,
+//         u2.name as staff_name,
+//         u2.email as staff_email,
+//         TIMESTAMPDIFF(HOUR, l.closure_requested_at, NOW()) as hours_pending
+//       FROM leads l
+//       JOIN users u1 ON l.userId = u1.id
+//       LEFT JOIN users u2 ON l.staffId = u2.id
+//       WHERE l.Lead_Status = "Pending Closure"
+//       AND u1.admin_id = ?
+//       ORDER BY l.closure_requested_at DESC
+//     `;
+
+//     // const [results] = await pool.query(sql, [adminId]);
+//     pool.query(sql, [adminId], (err, results) => {
+//       if (err) {
+//         console.error("Error getting leads:", err);
+//         return res.status(500).json({ error: "Server error" });
+//       }
+//           return res.json(results);
+//     })
+
+
+//   } catch (err) {
+//     console.error("Server error:", err);
+//     return res.status(500).json({ error: "Server error" });
+//   }
+// };
+const getPendingClosureCount = async (req, res) => {
+  const {adminId}=req.params;
+
+  try {
+    // const [result] = await pool.query(
+    //   `SELECT COUNT(*) as count 
+    //    FROM leads l 
+    //    JOIN users u ON l.userId = u.id 
+    //    WHERE l.Lead_Status = "Pending Closure" AND u.adminId = ?`,
+    //   [adminId]
+    // );
+
+    pool.query(
+      `SELECT COUNT(*) as count 
+       FROM leads l 
+       JOIN users u ON l.staffId = u.id 
+       WHERE l.Lead_Status = "Pending Closure" AND u.admin_id = ?`,
+      [adminId],
+      (err, result) => {
+        if (err) {
+          console.error("Error getting pending count:", err);
+          return res.status(500).json({ error: "Server error" });
+        }
+        res.json({ count: result[0].count });
+      }
+    )
+   
+  } catch (error) {
+    console.error("Error getting pending count:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+module.exports = { registerUser,addLead ,getLeadsByMonth, getSources, getPriorityByMonth, getStatusByMonth,
+  getAllLeadsAppliedForClosed,getFollowUpsDayWiseOfEachUser,getPendingClosureCount};

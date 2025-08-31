@@ -33,41 +33,57 @@
 
 
 // server.js
+
+// Backend - app.js (Simplified without Socket.io)
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-
 // Import routes
+const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
-const PORT = 5000
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors("http://localhost:5173"));
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
-const adminRoutes=require('./routes/adminRoutes');
 
-app.use('/api/admin',adminRoutes);
+// Routes
+app.use('/api/admin', adminRoutes);
+app.use('/api/user', userRoutes);
 
-
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('🚨 Server Error:', err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: err.message 
+  });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ error: 'Route not found' });
 });
 
-
-
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📊 Admin API: http://localhost:${PORT}/api/admin`);
+  console.log(`👥 User API: http://localhost:${PORT}/api/user`);
 });
 
 module.exports = app;
-          

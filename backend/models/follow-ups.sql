@@ -1,0 +1,12 @@
+CREATE TABLE follow-ups (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    lead_id INT NOT NULL,
+    Lead_Description VARCHAR(255) NOT NULL,
+    staffId INT NOT NULL,
+    userId INT NOT NULL,
+    Follow_up_date DATE NOT NULL,
+    Follow_up_time TIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+);
