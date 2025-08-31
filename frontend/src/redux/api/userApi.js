@@ -44,9 +44,18 @@ export const userAPI = createApi({
       }),
       providesTags: ["Admin-Leads"], 
     }),
+    getPendingClosureCount: builder.query({
+  query: (adminId) => ({
+    url: `/api/admin/pending-closure-count/${adminId}`,
+    method: "GET",
+  }),
+  providesTags: ["Admin-Leads"],
+}),
+
   }),
 });
 
 
 
-export const {useGetUserQuery,useGetAllLeadsQuery,useGetLeadByIdQuery,useUpdateLeadMutation,useGetAllLeadsAppliedForClosedQuery}=userAPI
+export const {useGetUserQuery,useGetAllLeadsQuery,useGetLeadByIdQuery,useUpdateLeadMutation,useGetPendingClosureCountQuery,
+  useGetAllLeadsAppliedForClosedQuery}=userAPI

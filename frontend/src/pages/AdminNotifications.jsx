@@ -14,8 +14,17 @@ export default function AdminNotifications() {
       const dispatch = useDispatch();
     const { role, userId:adminId} = useSelector((state) => state.user); // ✅ get role + userId from redux
 
-    const{data:leadsAppliedForClosure, error:leadsAppliedForClosureError, isLoading:leadsAppliedForClosureLoading } = 
-    useGetAllLeadsAppliedForClosedQuery(adminId);
+    // const{data:leadsAppliedForClosure, error:leadsAppliedForClosureError, isLoading:leadsAppliedForClosureLoading } = 
+    // useGetAllLeadsAppliedForClosedQuery(adminId);
+    const {
+  data: leadsAppliedForClosure,
+  error: leadsAppliedForClosureError,
+  isLoading: leadsAppliedForClosureLoading,
+} = useGetAllLeadsAppliedForClosedQuery(adminId, {
+  pollingInterval: 5000,
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+});
 
     console.log(leadsAppliedForClosure)
   return (
